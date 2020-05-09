@@ -6,7 +6,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import time
 import json
 from sklearn.metrics import confusion_matrix
-from CNN_Models import conv_edge, conv_road, vgg
+from Models import conv_edge, conv_road, vgg
 
 def model_selection(model_name):
 
@@ -46,8 +46,8 @@ def main():
         except RuntimeError as e:
             print(e)
     # Data loading
-    train_dir = '/home/yuanyc/home/yuanyc/run/Project_1/dataset/split/train200_2'
-    test_dir   = '/home/yuanyc/home/yuanyc/run/Project_1/dataset/split/test'
+    train_dir = '../dataset/split/train200_2'
+    test_dir   = '../dataset/split/test'
 
     train_gen = ImageDataGenerator(rescale = 1./255)
     val_gen   = ImageDataGenerator(rescale = 1./255)
@@ -69,7 +69,7 @@ def main():
 
 
     # Checkpoint details
-    checkpoint_path = '/home/yuanyc/home/yuanyc/run/Project_1/Checkpoints/{}/'
+    checkpoint_path = '../Checkpoints/{}/'
     checkpoint_dir = os.path.dirname(checkpoint_path)
     checkpoint = tf.train.Checkpoint(optimizer = optimizer, model = model)
     manager = tf.train.CheckpointManager(checkpoint, directory= checkpoint_path.format(model_name), max_to_keep=1)
@@ -77,7 +77,7 @@ def main():
     if resume:
         # Load the last best model
         latest = tf.train.latest_checkpoint(checkpoint_dir)
-        model.load_weights('/home/yuanyc/home/yuanyc/run/Project_1/Checkpoints/{}/'.format(model_name))
+        model.load_weights('../Checkpoints/{}/'.format(model_name))
         # Evaluate on the test set to get best acc
         best_acc, cm = evaluate(val_data, model, loss_fn)
 
@@ -96,7 +96,7 @@ def main():
     for epoch in range(n_epochs):
 
         # Adjust the learning rate after every 30 epochs
-        # step_based_decay(optimizer, epoch)
+        step_based_decay(optimizer, epoch)
         # Train for one epoch
         train(train_data, model, loss_fn, optimizer, epoch)
 
@@ -202,12 +202,6 @@ def evaluate(val_loader, model, loss_function):
     return acc.avg, (fps.sum, fns.sum, tps.sum, tns.sum)
 
 
-def save_checkpoint(filename, variables):
-    with open(filename, 'w+') as file:
-        for element in variables.values():
-            file.write(str(element))
-            file.write('\n\n')
-
 
 def step_based_decay(optimizer, epoch):
     """Sets a new learning after fixed number of epochs.
@@ -255,9 +249,6 @@ class Average(object):
         self.sum += val*n
         self.count += n
         self.avg = self.sum / self.count
-
-
-
 
 if __name__ == '__main__':
     main()
